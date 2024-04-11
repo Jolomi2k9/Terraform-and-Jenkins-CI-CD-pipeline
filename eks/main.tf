@@ -7,14 +7,19 @@ resource "aws_eks_cluster" "eks" {
     subnet_ids = [var.public_subnets[0],var.public_subnets[1]]    
   }
   
-
+  # enable cloudWatch logs 
+  enabled_cluster_log_types = ["api", "audit", "authenticator", "controllerManager", "scheduler"]
 }
 ################################################
 
-resource "aws_key_pair" "tr_auth" {      
-  public_key = file(var.public_key_path)
+# cloudWatch logs group
+resource "aws_cloudwatch_log_group" "eks_logs" {
+  name              = "/aws/eks/kube-eks-01/logs"
+  retention_in_days = 90
 }
 
+
+# EKS Node group
 resource "aws_eks_node_group" "backend" {
   cluster_name    = aws_eks_cluster.eks.name
   node_group_name = "dev"
@@ -39,4 +44,8 @@ resource "aws_eks_node_group" "backend" {
   update_config {
     max_unavailable = 1
   }
+}
+
+resource "aws_key_pair" "tr_auth" {      
+  public_key = file(var.public_key_path)
 }
